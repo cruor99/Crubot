@@ -5,6 +5,11 @@ import json
 import requests
 import os
 
+
+if not os.path.exists("accept_token"):
+	os.makedirs("accept_token")
+
+
 server = "irc.twitch.tv"       #settings
 channel = raw_input("What is your Twitch name")
 
