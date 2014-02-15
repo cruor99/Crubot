@@ -30,45 +30,55 @@ irc.send("PASS " + password + "\n")  #connects to the server
 irc.send("USER " + botnick + " " + botnick + " " + botnick + " :This is a fun bot!\n")  #user authentication
 irc.send("NICK " + botnick + "\n")  #sets nick
 irc.send("PRIVMSG nickserv :iNOOPE\r\n")  #auth
-irc.send("JOIN " + channel + "\n")  #join the chan
+irc.send("JOIN #" + channel + "\n")  #join the chan
 
 
 def handle_command(str_cmd):
-    cmd = str_cmd[str_cmd.find(':!'):str_cmd.find('\s')]
+    #cmd = str_cmd[str_cmd.find(':!'):str_cmd.find('\s'[str_cmd.find(':!')[-1]])]
+    cmd = str_cmd[str_cmd.find(':!'):-1]
+    #cmd = cmd1[:cmd1.find('\s')]
+    cmd = cmd[:cmd.find(' ')]
+    print cmd
+    # print cmd1
     #Bot commands
     if cmd == '!join':
         irc.send("JOIN " + channel + "\n")
     elif cmd == ':!setToken':
-        t = text.split(':!setToken')
+        t = str_cmd.split(':!setToken')
         storeAuth(t[1])
     #public commands
     elif cmd == ':!hap':
         send_msg('IDS HABBENING')
     elif cmd == ':!searchGame':
-        t = text.split(':!searchGame ')
+        t = str_cmd.split(':!searchGame ')
         search_game(t[1])
     #mod only
     else:
         user = get_user_posting(str_cmd)
 
         if cmd == ':!setTitle':
-            t = text.split(':!setTitle')
+            t = str_cmd.split(':!setTitle')
             chan_update(t[1])
-        elif cmd  == ':!setGame':
-            t = text.split(':!setGame')
+        elif cmd == ':!setGame':
+            t = str_cmd.split(':!setGame')
             print t[1]
             game_update(t[1])
-        elif text == ':!exit':
-            if text.find(':kimonorex') != -1 or text.find(':cruor99') != -1:
-                irc.send('PRIVMSG ' + channel + ' :bai \r\n')
+        elif cmd == ':!exit':
+            print 'Exit?!'
+            if str_cmd.find(':kimonorex') != -1 or str_cmd.find(':cruor99') != -1:
+                print 'Exit time'
+                irc.send('PRIVMSG #' + channel + ' :bai \r\n')
                 stop_logging_history()
 
+
 def send_msg(str_msg):
+    print str_msg
+    print 'sending message'
     irc.send('PRIVMSG #' + channel + ' :' + str_msg + '\r\n')
 
 
 def get_user_posting(str_msg):
-    return text[text.find(":") + 1:text.find("!")]
+    return str_msg[str_msg.find(":") + 1:str_msg.find("!")]
 
 
 def chan_update(*title):  #updates channel title
@@ -77,7 +87,7 @@ def chan_update(*title):  #updates channel title
     print example
     print title
 
-    url = 'https://api.twitch.tv/kraken/channels/' + channel.strip('#') + '?oauth_token=niyi9fepwmus1pge3rosn2lqn4wy46n'
+    url = 'https://api.twitch.tv/kraken/channels/' + channel + '?oauth_token=niyi9fepwmus1pge3rosn2lqn4wy46n'
     headers = {"Accept ": "application/vnd.twitchtv.v3+json", " Authorization": " " + botAuth}
     channelobj = {'channel[status]': title}
     r = requests.put(url, data=channelobj, headers=headers)
@@ -136,21 +146,25 @@ while 1:  # puts it in a loop
     text = irc.recv(2040)  # receive the text
     print text  # print text to console
     log_file.write(time.strftime("%H:%M:%S") + ' ' + text + '\n')
-    if text.find(':jtv MODE #that_other_vidya_stream +o'):
+    if text.find(':jtv MODE #that_other_vidya_stream +o')!= -1:
         users.append(text[text.find('+o') + 2:])
     if text.find('PING') != -1:  # check if 'PING' is found
         irc.send('PONG ' + text.split()[1] + '\r\n')  # returnes 'PONG' back to the server (prevents pinging out!)
-    if text.find('PRIVMSG #that_other_vidya_stream :!'):
+    if text.find('PRIVMSG #'+ channel+ ' :!') != -1:
         handle_command(text)
     else:
+        text = text.lower()
+        print text
         if text.find(':hue') != -1:
             send_msg('HUEHUEHUEHUEHUEHU')
+        if text.find('trump') != -1:
+            send_msg('>paying for digital cardboard')
         if text.find(':Kappa') != -1:
-            send_msg('kappa')
-        if text.find(':WHITE POWER') != -1:
+            send_msg('Kappa')
+        if text.find(':white power') != -1:
             send_msg('WHITE POWER TO ' + get_user_posting(text).upper())
         if text.find(':frankerZ') != -1:
-            send_msg('frankerz')
+            send_msg('frankerZ')
         if text.find(':cru33') != -1 and text.find(':crubot') == -1:
             # print 'CRU REALLY IS A FAG'
             send_msg('Cru is a fag')
